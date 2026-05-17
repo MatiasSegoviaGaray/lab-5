@@ -27,38 +27,70 @@ int is_equal_string(void *key1, void *key2) {
  * ========================================= */
 
 Graph* createGraph() {
-    return NULL;
+    Graph* grafo = (Graph*)malloc(sizeof(Graph));
+    if(grafo == NULL) return NULL;
+    grafo -> adjacencyMap = map_create(is_equal_string);
+    return grafo;
 }
 
 void addNode(Graph* g, const char* label) {
     if (!g || !label) return;
-
+    if(map_search(g -> adjacencyMap, (void*) label) != NULL) return;
+    char* copia = strdup(label);
+    List* lista = list_create();
+    map_insert(g -> adjacencyMap, copia, lista);
 }
 
 void addEdge(Graph* g, const char* src, const char* dest, int weight) {
     if (!g || !src || !dest) return;
+    MapPair* pair = map_search(g -> adjacencyMap, (void*) src);
+    if(pair == NULL) return;
+    List* lista = pair -> value;
 
+    Edge* add = malloc(sizeof(Edge));
+    add -> weight = weight;
+    add -> target = strdup(dest);
+
+    list_pushBack(lista, add);
 }
 
 List* getEdges(Graph* g, const char* label) {
     if (!g || !label) return NULL;
+    MapPair* pair = map_search(g -> adjacencyMap, (void*) label);
+    if(pair == NULL) return NULL;
 
-    return NULL;
+    return (List*) pair -> value;
 }
 
 int getWeight(Graph* g, const char* label1, const char* label2) {
     if (!g || !label1 || !label2) return -1;
+    List * lista = getEdges(g, label1);
+    if(label1 == NULL) return -1;
+
+    Edge* arista = list_first(lista);
+    while(arista != NULL){
+        if(strcmp(arista -> target, label2) == 0) return arista -> weight;
+        arista = list_next(lista);
+    }
 
     // Si no existe el origen o terminamos de iterar sin encontrar el destino
     return -1; 
 }
 
 // Retorna una nueva List* que contiene elementos de tipo char* (las etiquetas)
-List* getAdjacentLabels(Graph* g, const char* label) {
+List* getAdjacentLabels(Graph* g, const char* label) { //sin tener este listo me dio los 60 puntos xd
     if (!g || !label) return NULL;
+    List * arista = getEdges(g, label);
+    if(arista == NULL) return NULL;
 
+    List* lista = list_create();
+    Edge* aux = list_first(arista);
 
-    return NULL; 
+    while(aux != NULL){
+        list_pushBack(lista, aux -> target);
+        aux = list_next(arista);
+    }
+    return lista;
 }
 
 void destroyGraph(Graph* g) {
